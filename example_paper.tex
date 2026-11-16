@@ -130,19 +130,20 @@
 \end{abstract}
 
 \section{Introduction}
-Skills augment LLM-based agents handle complex tasks by following procedure guidelines,
+Skills can augment LLM-based agents handle complex tasks by following procedure guidelines,
 leveraging external tools, and utilizing domain knowledge~\cite{xxx}. 
-Applying appropriate skills that match the requirements of a given task is crucial for agents to achieve high performance.
-Some well-known agent companies, such as Anthropic~\cite{xxx} and OpenAI~\cite{xxx}, have been actively developing and publishing large amount of skills for various tasks of various domains,
+Various skills, whether manually created by using human expertise~\cite{xxx} or generated automatically through skill generation~\cite{xxx} and evolution~\cite{xxx} during task executions, have been developed by various skill providers and distributed in various skill repositories. 
+For example, some well-known agent companies, such as Anthropic~\cite{xxx} and OpenAI~\cite{xxx}, have been actively developing and publishing large amount of skills for various tasks of various domains,
 such as coding and document processing. 
 % Skill providers have been actively developing large amount of skills specially designedfor various tasks and domains, and publishing them online dispersedly across various repositories. 
 % For example, Anthropic~\cite{xx} published xxx.
+Applying appropriate skills that match the requirements of a given task is crucial for agents to achieve high performance.
 However, customized agent systems, which also requires specially designed skills for specific domains, e.g., healthcare, need spend much effort looking for suitable skills from diverse repositories.
 The dispersed nature of skill repositories make it challenging for these agent systems to maintain and utilize appropriate skills.
 Maintaining a unified skill library can alleviate the burden of skill management and facilitate the development of customized agent systems.
 
-However, building an unified skill library that is reliable and effciently usable can be challenging due to the following reasons.
-1) \textbf{Cross-repository conflicts}: skills of similar tasks usually have format and content conflicts when they are from differnet repositories developed by different providers. 
+However, building an unified skill library that is reliable and efficiently usable can be challenging due to the following reasons.
+1) \textbf{Cross-repository conflicts}: skills of similar tasks usually have format and content conflicts when they are from different repositories developed by different providers. 
 These conflicts, which arise from various factors, such as different design principles of providers and task scenarios, need to be properly resolved to ensure skill compatibility and usability.
 2) \textbf{Task-skill matching biases}: locating appropriate skills among tens of thousands of skills in the library for a given task \textcolor{blue}{is prone to errors and can be costly.
 xxxxxxxxxxxxxxxxxxxxxx.}
@@ -150,13 +151,12 @@ xxxxxxxxxxxxxxxxxxxxxx.}
 These challenges directly impact the quality of skills and the effective and efficient usage of them. 
 
 
-Some studies have preliminary tried to partially tackle these challenges. 
-For example, xxxx
-To find skills in a large-scale repository, SkillRouter~\cite{zheng2026skillrouter} trains a skill content-aware language model to match a task to skills.
-However, to our best knowledge, no study has systematically constructed a unified skill library with xxx that can be reliably and efficiently used by LLM-based agents.
+Recent studies have addressed important aspects of skill library construction and usage.
+SkillNet~\cite{liang2026skillnet} organizes and evaluates skills from heterogeneous sources, while SkillCorpus~\cite{wang2026skillcorpus} combines community skill curation with retrieval and downstream evaluation.
+For large-scale skill selection, SkillRouter~\cite{zheng2026skillrouter} develops a content-aware retrieval and reranking pipeline.
+Building on these advances, we investigate conflict-aware consolidation, task-oriented indexing, and controlled skill exposure as coordinated construction and usage protocols for a unified skill library.
 
-In this study, we systematically develop construction and usage protocols for a unified, large-scale skill library, named \textbf{SkillLib}. 
-We collect agent skills from high-reputation repositories of various providers and consolidate them into a single, extendable library. 
+In this study, we systematically develop construction and usage protocols for a reliable and efficient unified skill library. 
 First, to resolve skill conflicts from different repositories, we finalize skills into three types, namely individual, authentic, and combined, which correspond different levels of conflicts. 
 Conditioned on these types, we cluster skills into non-overlapping groups based on their task similarity and handle conflicts within each group.
 As a result, a finalized skill are considered to be compatible with others and can be reliably used by agents.
@@ -171,7 +171,10 @@ Given a task query, this hierarchical indexing allows for a lightweight matching
 %  of task-can support efficient semantic-aware filtering of skill sets, which can reduce the risk of matching biases, and which has been semantically filtered  which is efficient and can reduce the risk of matching biases.
 Third, to regulate the exposure of skill information to agents, we design the usage interfaces as simply two functions, namely \texttt{find\_skills} and \texttt{load\_skill}.
 The two functions support the use of SkillLib in all scenarios without proactively exposing skill metadata in the conversation context, which can therefore avoid overwhelming the agent with excessive information while ensuring effective utilization of skills. 
-We implement SkillLib as an independent package and integrate it seamlessly into an existing agent system. 
+
+Using the above protocols, we generates a unified, large-scale skill library, named \textbf{SkillLib}. 
+We collect agent skills from high-reputation repositories of various providers and consolidate them into a single, extendable library. 
+We implement SkillLib as an independent package that can be integrated seamlessly into an existing agent system. 
 The evaluation results on various xxxxxxxxxxxxxxx. 
 
 
@@ -185,10 +188,68 @@ The major contributions of this study are summarized as follows.
 
 \section{Related Work}\label{sec:relatedWork}
 
+\subsection{Agent Skill Acquisition and Library Consolidation}
+Reusable skills enable agents to retain procedural knowledge across tasks.
+Voyager~\cite{wang2023voyager} provides an early example by accumulating executable skills through open-ended exploration in Minecraft.
+Agent Workflow Memory~\cite{wang2025awm} extends experience reuse to web navigation by inducing reusable workflows from offline demonstrations or online interactions.
+Agent Skill Induction~\cite{wang2025asi} further represents web skills as programs that can be verified and adapted during execution.
+These approaches primarily acquire skills within an agent's task environment; SkillLib addresses the subsequent integration of independently authored skills from multiple repositories.
+
+Closer to our setting, SkillNet~\cite{liang2026skillnet} provides an infrastructure for creating, evaluating, and connecting skills through a unified ontology.
+Its curation pipeline combines deduplication and quality filtering with explicit similarity, composition, and dependency relations.
+SkillCorpus~\cite{wang2026skillcorpus} directly studies the consolidation of the open skill ecosystem, combining exact and semantic deduplication, quality assessment, and a retrieval-and-selection stack with evaluation on real agent tasks.
+SkillLib places conflict handling at the center of this consolidation problem: its individual, authentic, and combined skill types distinguish preservation of independent skills, selection of a canonical version, and synthesis of related procedures.
+This focus makes the handling of competing versions and overlapping instructions an explicit library-construction decision, alongside the downstream retrieval and access protocols.
+
+\subsection{Task-Aware Skill Retrieval and Routing}
+Large tool inventories motivated retrieval before the emergence of community skill libraries.
+ToolLLM~\cite{qin2024toolllm} couples a large API collection with a neural retriever that identifies candidate APIs for an instruction.
+AnyTool~\cite{du2024anytool} introduces hierarchical API discovery through category- and tool-level agents, establishing coarse-to-fine search as a precedent for scaling capability selection.
+The representation being searched also matters: Tool-REX~\cite{lu2026toolrex} enriches heterogeneous tool documentation with structured fields and trains dedicated retrieval and reranking models.
+These studies motivate both hierarchical organization and informative task-specific representations, although their retrieval units are API tools.
+
+SkillRouter~\cite{zheng2026skillrouter} examines skill selection more directly, showing that names and descriptions can omit discriminative information contained in skill bodies.
+Its body-aware retrieval and reranking pipeline addresses confusion among heavily overlapping skills at registry scale.
+SkillFlow~\cite{li2026skillflow} progressively filters community skills through dense retrieval, two reranking stages, and LLM selection; its downstream results also show that retrieval gains depend on corpus coverage and executable skill content.
+AgentSkillOS~\cite{li2026agentskillos} takes a structural approach, recursively organizing skills into a capability tree and composing retrieved skills into directed acyclic execution graphs.
+SkillNet-Fabric~\cite{liang2026skillnet} further guides skill-set selection with task-specific Wikis built from skill contracts and relation-expanded candidates.
+SkillLib organizes the outputs of conflict-aware consolidation into a domain--task-family hierarchy, with task-specific cards supporting matching within narrowed candidate sets.
+This connects the skill artifacts produced during library construction to task-level candidate filtering and a separate loading interface.
+SkillRouter's findings make the procedural information retained in these cards a central consideration in this design.
+
+\subsection{Context-Efficient Skill Discovery and On-Demand Loading}
+Capability access must balance informative selection with the context consumed by exposing available tools or skills.
+ToolGen~\cite{wang2025toolgen} addresses this constraint by encoding tools as dedicated tokens and learning to generate tool identifiers and arguments, moving tool knowledge into model parameters.
+External discovery offers another approach: MCP-Zero~\cite{fei2025mcpzero} lets agents identify capability gaps and request tools on demand through hierarchical server--tool routing, providing a direct precedent for agent-initiated capability acquisition.
+
+ToolScope~\cite{liu2026toolscope} connects redundancy reduction to context control by merging semantically equivalent tools, auditing proposed merges, and retrieving a compact toolset for each query.
+It is particularly relevant to SkillLib's joint treatment of consolidation and exposure, while operating on function signatures and tool descriptions rather than procedural skill packages.
+Graph-of-Skills~\cite{liu2026graphskills} further shows why relevance filtering alone can be insufficient: it retrieves dependency-aware skill bundles and loads their content within a context budget to recover prerequisites that semantic search can miss.
+SkillLib adopts a complementary access protocol: \texttt{find\_skills} exposes task-relevant candidates, and \texttt{load\_skill} supplies selected skill instructions on demand, without placing the entire library's metadata in the initial conversation context.
+This protocol applies on-demand discovery and loading to the skill artifacts produced by consolidation, connecting context control to how the library is constructed and indexed.
+
 \section{Background}
 
 \section{Method}\label{sec:method}
 \subsection{Overview}
+
+SkillLib combines library construction with on-demand skill access.
+\Cref{fig:lib-construction} summarizes conflict resolution, hierarchical indexing, and skill-card generation.
+\Cref{fig:lib-usage} illustrates how an agent discovers relevant skill cards with \texttt{find\_skills} and retrieves the selected skill with \texttt{load\_skill}.
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\textwidth]{fig/libConstruction.pdf}
+  \caption{Construction of SkillLib. Skills collected from multiple repositories undergo conflict resolution to produce leading skills, which are organized by domain and task family. Each skill receives a card containing its metadata and repository link. New repositories can be incorporated through subsequent updates.}
+  \label{fig:lib-construction}
+\end{figure*}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{fig/libUsage.pdf}
+  \caption{On-demand access to SkillLib. Given a task, the agent calls \texttt{find\_skills} to discover relevant skill cards through the hierarchical index, then calls \texttt{load\_skill} to retrieve a leading skill from an online or cached repository.}
+  \label{fig:lib-usage}
+\end{figure}
 
 \section{Result}\label{sec:result}
 \subsection{Experimental Setup}
@@ -201,70 +262,7 @@ The major contributions of this study are summarized as follows.
 
 \section{Conclusion and Limitations}
 
-\subsection{Partitioning the Text}
 
-You should organize your paper into sections and paragraphs to help readers
-place a structure on the material and understand its contributions.
-
-\subsubsection{Sections and Subsections}
-
-Section headings should be numbered, flush left, and set in 11~pt bold type
-with the content words capitalized. Leave 0.25~inches of space before the
-heading and 0.15~inches after the heading.
-
-Similarly, subsection headings should be numbered, flush left, and set in 10~pt
-bold type with the content words capitalized. Leave
-0.2~inches of space before the heading and 0.13~inches afterward.
-
-Finally, subsubsection headings should be numbered, flush left, and set in
-10~pt small caps with the content words capitalized. Leave
-0.18~inches of space before the heading and 0.1~inches after the heading.
-
-Please use no more than three levels of headings.
-
-\subsubsection{Paragraphs and Footnotes}
-
-Within each section or subsection, you should further partition the paper into
-paragraphs. Do not indent the first line of a given paragraph, but insert a
-blank line between succeeding ones.
-
-You can use footnotes\footnote{Footnotes should be complete sentences.}
-to provide readers with additional information about a topic without
-interrupting the flow of the paper. Indicate footnotes with a number in the
-text where the point is most relevant. Place the footnote in 9~point type at
-the bottom of the column in which it appears. Precede the first footnote in a
-column with a horizontal rule of 0.8~inches.\footnote{Multiple footnotes can
-  appear in each column, in the same order as they appear in the text,
-  but spread them across columns and pages if possible.}
-
-
-\subsection{Figures}
-
-You may want to include figures in the paper to illustrate your approach and
-results. Such artwork should be centered, legible, and separated from the text.
-Lines should be dark and at least 0.5~points thick for purposes of
-reproduction, and text should not appear on a gray background.
-
-Label all distinct components of each figure. If the figure takes the form of a
-graph, then give a name for each axis and include a legend that briefly
-describes each curve. Do not include a title inside the figure; instead, the
-caption should serve this function.
-
-Number figures sequentially, placing the figure number and caption \emph{after}
-the graphics, with at least 0.1~inches of space before the caption and
-0.1~inches after it, as in \cref{icml-historical}. The figure caption should be
-set in 9~point type and centered unless it runs two or more lines, in which
-case it should be flush left. You may float figures to the top or bottom of a
-column, and you may set wide figures across both columns (use the environment
-\texttt{figure*} in \LaTeX). Always place two-column figures at the top or
-bottom of the page.
-
-\subsection{Algorithms}
-
-If you are using \LaTeX, please use the ``algorithm'' and ``algorithmic''
-environments to format pseudocode. These require the corresponding stylefiles,
-algorithm.sty and algorithmic.sty, which are supplied with this package.
-\cref{alg:example} shows an example.
 
 \begin{algorithm}[tb]
   \caption{Bubble Sort}
@@ -323,10 +321,6 @@ case it should be flush left.
   \vskip -0.1in
 \end{table}
 
-Tables contain textual material, whereas figures contain graphical material.
-Specify the contents of each row and column in the table's topmost row. Again,
-you may float tables to a column's top or bottom, and set wide tables across
-both columns. Place two-column tables at the top or bottom of the page.
 
 \subsection{Theorems and Such}
 The preferred way is to number definitions, propositions, lemmas, etc.
@@ -371,95 +365,46 @@ An easy corollary of \cref{thm:bigtheorem} is the following:
 
 \subsection{Citations and References}
 
-Please use APA reference format regardless of your formatter or word processor.
-If you rely on the \LaTeX\/ bibliographic facility, use \texttt{natbib.sty} and
-\texttt{icml2026.bst} included in the style-file package to obtain this format.
 
-Citations within the text should include the authors' last names and year. If
-the authors' names are included in the sentence, place only the year in
-parentheses, for example when referencing Arthur Samuel's pioneering work
-\yrcite{Samuel59}. Otherwise place the entire reference in parentheses with the
-authors and year separated by a comma \cite{Samuel59}. List multiple references
-separated by semicolons \cite{kearns89,Samuel59,mitchell80}. Use the `et~al.'
-construct only for citations with three or more authors or after listing all
-authors to a publication in an earlier reference \cite{MachineLearningI}.
+% \section*{Software and Data}
 
-Authors should cite their own work in the third person in the initial version
-of their paper submitted for blind review. Please refer to \cref{author info}
-for detailed instructions on how to cite your own papers.
+% If a paper is accepted, we strongly encourage the publication of software and
+% data with the camera-ready version of the paper whenever appropriate. This can
+% be done by including a URL in the camera-ready copy. However, \textbf{do not}
+% include URLs that reveal your institution or identity in your submission for
+% review. Instead, provide an anonymous URL or upload the material as
+% ``Supplementary Material'' into the OpenReview reviewing system. Note that
+% reviewers are not required to look at this material when writing their review.
 
-Use an unnumbered first-level section heading for the references, and use a
-hanging indent style, with the first line of the reference flush against the
-left margin and subsequent lines indented by 10 points. The references at the
-end of this document give examples for journal articles \cite{Samuel59},
-conference publications \cite{langley00}, book chapters \cite{Newell81}, books
-\cite{DudaHart2nd}, edited volumes \cite{MachineLearningI}, technical reports
-\cite{mitchell80}, and dissertations \cite{kearns89}.
+% % Acknowledgements should only appear in the accepted version.
+% \section*{Acknowledgements}
 
-Alphabetize references by the surnames of the first authors, with single author
-entries preceding multiple author entries. Order references for the same
-authors by year of publication, with the earliest first. Make sure that each
-reference includes all relevant information (e.g., page numbers).
 
-Please put some effort into making references complete, presentable, and
-consistent, e.g. use the actual current name of authors. If using bibtex,
-please protect capital letters of names and abbreviations in titles, for
-example, use \{B\}ayesian or \{L\}ipschitz in your .bib file.
 
-\section*{Accessibility}
+% \section*{Impact Statement}
 
-Authors are kindly asked to make their submissions as accessible as possible
-for everyone including people with disabilities and sensory or neurological
-differences. Tips of how to achieve this and what to pay attention to will be
-provided on the conference website \url{http://icml.cc/}.
+% Authors are \textbf{required} to include a statement of the potential broader
+% impact of their work, including its ethical aspects and future societal
+% consequences. This statement should be in an unnumbered section at the end of
+% the paper (co-located with Acknowledgements -- the two may appear in either
+% order, but both must be before References), and does not count toward the paper
+% page limit. In many cases, where the ethical impacts and expected societal
+% implications are those that are well established when advancing the field of
+% Machine Learning, substantial discussion is not required, and a simple
+% statement such as the following will suffice:
 
-\section*{Software and Data}
+% ``This paper presents work whose goal is to advance the field of Machine
+% Learning. There are many potential societal consequences of our work, none
+% which we feel must be specifically highlighted here.''
 
-If a paper is accepted, we strongly encourage the publication of software and
-data with the camera-ready version of the paper whenever appropriate. This can
-be done by including a URL in the camera-ready copy. However, \textbf{do not}
-include URLs that reveal your institution or identity in your submission for
-review. Instead, provide an anonymous URL or upload the material as
-``Supplementary Material'' into the OpenReview reviewing system. Note that
-reviewers are not required to look at this material when writing their review.
-
-% Acknowledgements should only appear in the accepted version.
-\section*{Acknowledgements}
-
-\textbf{Do not} include acknowledgements in the initial version of the paper
-submitted for blind review.
-
-If a paper is accepted, the final camera-ready version can (and usually should)
-include acknowledgements.  Such acknowledgements should be placed at the end of
-the section, in an unnumbered section that does not count towards the paper
-page limit. Typically, this will include thanks to reviewers who gave useful
-comments, to colleagues who contributed to the ideas, and to funding agencies
-and corporate sponsors that provided financial support.
-
-\section*{Impact Statement}
-
-Authors are \textbf{required} to include a statement of the potential broader
-impact of their work, including its ethical aspects and future societal
-consequences. This statement should be in an unnumbered section at the end of
-the paper (co-located with Acknowledgements -- the two may appear in either
-order, but both must be before References), and does not count toward the paper
-page limit. In many cases, where the ethical impacts and expected societal
-implications are those that are well established when advancing the field of
-Machine Learning, substantial discussion is not required, and a simple
-statement such as the following will suffice:
-
-``This paper presents work whose goal is to advance the field of Machine
-Learning. There are many potential societal consequences of our work, none
-which we feel must be specifically highlighted here.''
-
-The above statement can be used verbatim in such cases, but we encourage
-authors to think about whether there is content which does warrant further
-discussion, as this statement will be apparent if the paper is later flagged
-for ethics review.
+% The above statement can be used verbatim in such cases, but we encourage
+% authors to think about whether there is content which does warrant further
+% discussion, as this statement will be apparent if the paper is later flagged
+% for ethics review.
 
 % In the unusual situation where you want a paper to appear in the
 % references without citing it in the main text, use \nocite
-\nocite{langley00}
+% \nocite{langley00}
 
 \bibliography{example_paper}
 \bibliographystyle{icml2026}
@@ -474,14 +419,7 @@ for ethics review.
 \onecolumn
 \section{You \emph{can} have an appendix here.}
 
-You can have as much text here as you want. The main body must be at most $8$
-pages long. For the final version, one more page can be added. If you want, you
-can use an appendix like this one.
 
-The $\mathtt{\backslash onecolumn}$ command above can be kept in place if you
-prefer a one-column appendix, or can be removed if you prefer a two-column
-appendix.  Apart from this possible change, the style (font size, spacing,
-margins, page numbering, etc.) should be kept the same as the main body.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

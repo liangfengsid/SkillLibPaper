@@ -1,0 +1,35 @@
+# LaTeX build intermediates
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.run.xml
+*.synctex.gz
+*.synctex(busy)
+*.toc
+*.lof
+*.lot
+*.nav
+*.snm
+*.vrb
+*.xdv
+*.dvi
+*.idx
+*.ilg
+*.ind
+*.loe
+*.lol
+
+# Compiled paper (keep PDF figures under fig/)
+/example_paper.pdf
+
+# Editor backups and OS metadata
+*~
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
