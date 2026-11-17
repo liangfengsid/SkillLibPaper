@@ -25,7 +25,7 @@
 *.lol
 
 # Compiled paper (keep PDF figures under fig/)
-/example_paper.pdf
+/*.pdf
 
 # Editor backups and OS metadata
 *~
